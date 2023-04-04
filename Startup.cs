@@ -26,7 +26,7 @@ namespace PaymentService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var settings = new ConfigServerClientSettings { Uri = GetConfigServerUri() };
+            var settings = new ConfigServerClientSettings { Uri = GetConfigServerUri(), Name = "payment-service" };
             IConfigurationBuilder configurationBuilder = new ConfigurationBuilder().AddConfigServer(settings);
             services.ConfigureConfigServerClientOptions(configurationBuilder.Build());
             services.AddOAuthServiceOptions(Configuration);
