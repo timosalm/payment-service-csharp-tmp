@@ -1,3 +1,6 @@
+using KubeServiceBinding;
+using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -5,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Steeltoe.Connector.OAuth;
+using Steeltoe.Extensions.Configuration.ConfigServer;
 using Steeltoe.Management.Endpoint;
 using Steeltoe.Management.Tracing;
 
@@ -22,6 +26,9 @@ namespace PaymentService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var settings = new ConfigServerClientSettings { Uri = GetConfigServerUri() };
+            IConfigurationBuilder configurationBuilder = new ConfigurationBuilder().AddConfigServer(settings);
+            services.ConfigureConfigServerClientOptions(configurationBuilder.Build());
             services.AddOAuthServiceOptions(Configuration);
             services.AddAllActuators(Configuration);
             services.ActivateActuatorEndpoints();
@@ -49,6 +56,21 @@ namespace PaymentService
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private static String GetConfigServerUri()
+        {
+            try
+            {
+                DotnetServiceBinding serviceBinding = new DotnetServiceBinding();
+                Dictionary<string, string> configServerServiceBinding = serviceBinding.GetBindings("config");
+                return configServerServiceBinding["uri"];
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Service Binding not found");
+                return ConfigServerClientSettings.DEFAULT_URI;
+            }
         }
     }
 }
